@@ -3,11 +3,11 @@ package org.example;
 import org.example.entities.Customer;
 import org.example.entities.Order;
 import org.example.entities.Product;
+import org.w3c.dom.ls.LSOutput;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Application {
 
@@ -16,6 +16,8 @@ public class Application {
     static List<Order> orders = new ArrayList<>();
 
     public static void main(String[] args) {
+
+
         initializeWarehouse();
         createCustomers();
         placeOrders();
@@ -35,6 +37,48 @@ public class Application {
         getBoysProductsWithDiscount().forEach(System.out::println);
         System.out.println("---------------------------------- ES 4 ------------------------------------");
         getTier2Products().forEach(System.out::println);
+
+        System.out.println("---------------------------------ES 1 giorno 4----------------------------------");
+
+        Map<Customer, List<Order>> ordersByCustomer = orders.stream().collect(Collectors.groupingBy(Order-> Order.getCustomer()));
+        ordersByCustomer.forEach((customer, orderList) -> {
+            System.out.println("Customer: " + customer.getName());
+            orderList.forEach(System.out::println);});
+
+        System.out.println("-------------------------------ES 2 giorno 4---------------------------------");
+
+        Map<Customer, Double> totalByCustomer = orders.stream()
+                .collect(Collectors.groupingBy(Order::getCustomer, Collectors.summingDouble(order ->
+                                order.getProducts().stream().mapToDouble(Product-> Product.getPrice()).sum())
+                ));
+
+        totalByCustomer.forEach((customer, total) ->
+                System.out.println("Customer: " + customer.getName() + " totale: " + total));
+
+        System.out.println("...........................ES 3 gionro 4 --------------------------------------");
+
+        List<Product> mostExpensive = warehouse.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(1).toList();
+
+        mostExpensive.forEach(product -> System.out.println("Il più costoso: " + product));
+
+        System.out.println("------------------------------ES 4 giorno 4----------------------------------------");
+
+        OptionalDouble averageAmount = orders.stream().mapToDouble(order -> order.getProducts().stream()
+                        .mapToDouble(Product-> Product.getPrice()).sum()).average();
+
+        if (averageAmount.isPresent()) {
+            System.out.println("Average ordini: " + averageAmount.getAsDouble());
+        } else {
+            System.out.println("non ci sono ordini per poter calcolare l'average.");
+        }
+        System.out.println("...........................ES 5 gionro 4 --------------------------------------");
+
+        Map<String, Double> totalByCategory = warehouse.stream().collect(Collectors.groupingBy(Product::getCategory,
+                        Collectors.summingDouble(Product::getPrice)));
+
+        totalByCategory.forEach((category, total) ->
+                System.out.println("Category: " + category + " | Totale: " + total));
+
     }
 
     // 1
@@ -147,5 +191,7 @@ public class Application {
         orders.add(giacomoOrder2);
 
     }
+
+
 }
 
